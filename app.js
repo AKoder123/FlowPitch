@@ -4,7 +4,7 @@
 const SLIDES = [
   {
     kicker: "HOOK",
-    title: "Pitches shouldn’t look like documents.",
+    title: "Presentations shouldn’t look like documents.",
     subtitle: "FlowPitch turns any PPT/PDF into a web-native pitch experience that reads fast, looks premium, and drives a decision.",
     bullets: [
       "One link. No attachments. No friction.",
