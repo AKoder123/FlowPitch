@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#2a004a" />
+  <title>FlowPitch — Web-Native Pitch</title>
+
+  <style>
+    :root{
+      --bg1:#2b0057;
+      --bg2:#6a00ff;
+      --bg3:#ff2bd6;
+      --ink:#f6f1ff;
+      --muted:rgba(246,241,255,.72);
+      --glass:rgba(255,255,255,.10);
+      --glass2:rgba(255,255,255,.06);
+      --stroke:rgba(255,255,255,.14);
+      --shadow: 0 20px 60px rgba(0,0,0,.45);
+      --radius: 22px;
+      --safeTop: env(safe-area-inset-top, 0px);
+      --safeBottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--ink);
+      overflow:hidden;
+      background: radial-gradient(1200px 900px at 20% 20%, rgba(255,43,214,.30), transparent 60%),
+                  radial-gradient(1200px 900px at 80% 30%, rgba(106,0,255,.34), transparent 60%),
+                  radial-gradient(900px 700px at 50% 90%, rgba(55,255,227,.18), transparent 60%),
+                  linear-gradient(135deg, var(--bg1), #13001f 45%, #090010);
+    }
+
+    /* Animated gradient glow layer */
+    .aurora{
+      position:absolute; inset:-30%;
+      filter: blur(40px) saturate(1.2);
+      opacity:.85;
+      background:
+        radial-gradient(closest-side at 30% 40%, rgba(255,43,214,.55), transparent 65%),
+        radial-gradient(closest-side at 70% 35%, rgba(106,0,255,.55), transparent 65%),
+        radial-gradient(closest-side at 55% 75%, rgba(70,255,210,.25), transparent 70%);
+      animation: drift 10s ease-in-out infinite alternate;
+      transform: translate3d(0,0,0);
+      pointer-events:none;
+    }
+    @keyframes drift{
+      0%{ transform: translate(-2%, -1%) scale(1.02); }
+      100%{ transform: translate(2%, 1.5%) scale(1.06); }
+    }
+
+    /* Subtle star/noise */
+    .noise{
+      position:absolute; inset:0;
+      pointer-events:none;
+      opacity:.12;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+    }
+
+    /* Layout wrapper (safe areas for iPhone notch) */
+    .app{
+      position:relative;
+      height:100%;
+      padding: calc(14px + var(--safeTop)) 14px calc(14px + var(--safeBottom)) 14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      min-height:44px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .logo{
+      width:34px; height:34px;
+      border-radius: 12px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.06)),
+        radial-gradient(circle at 30% 30%, rgba(255,43,214,.9), transparent 55%),
+        radial-gradient(circle at 70% 35%, rgba(106,0,255,.9), transparent 55%),
+        radial-gradient(circle at 50% 75%, rgba(70,255,210,.45), transparent 60%);
+      box-shadow: 0 10px 30px rgba(106,0,255,.35);
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .brand h1{
+      font-size: 14px;
+      margin:0;
+      letter-spacing:.3px;
+      line-height:1.1;
+    }
+    .brand .tag{
+      font-size: 12px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+
+    .pill{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--glass), var(--glass2));
+      border:1px solid var(--stroke);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      font-size:12px;
+      color: var(--muted);
+      user-select:none;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:50%;
+      background: rgba(70,255,210,.95);
+      box-shadow: 0 0 18px rgba(70,255,210,.55);
+    }
+
+    /* Slide area */
+    .stage{
+      position:relative;
+      flex:1;
+      border-radius: var(--radius);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+    }
+
+    .slide{
+      position:absolute;
+      inset:0;
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      transform: translateX(0);
+      opacity:0;
+      pointer-events:none;
+      transition: transform .45s cubic-bezier(.2,.9,.2,1), opacity .45s ease;
+    }
+    .slide.active{
+      opacity:1;
+      pointer-events:auto;
+      transform: translateX(0);
+    }
+    .slide.to-left{ transform: translateX(-12%); }
+    .slide.to-right{ transform: translateX(12%); }
+
+    .card{
+      border-radius: 18px;
+      padding:16px;
+      background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.10));
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow: 0 14px 40px rgba(0,0,0,.28);
+      backdrop-filter: blur(10px);
+    }
+
+    .kicker{
+      font-size:12px;
+      color: rgba(255,255,255,.78);
+      letter-spacing:.22em;
+      text-transform: uppercase;
+    }
+    .title{
+      margin:8px 0 0 0;
+      font-size: clamp(22px, 4.8vw, 30px);
+      line-height:1.1;
+      letter-spacing:-.02em;
+    }
+    .subtitle{
+      margin:10px 0 0 0;
+      font-size: 14px;
+      color: var(--muted);
+      line-height:1.5;
+    }
+
+    ul.bullets{
+      margin:14px 0 0 0;
+      padding:0;
+      list-style:none;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .bullets li{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      padding:12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+    }
+    .bullets li .b{
+      width:10px; height:10px; margin-top:6px;
+      border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,43,214,1), rgba(106,0,255,1));
+      box-shadow: 0 0 20px rgba(106,0,255,.45);
+      flex: 0 0 auto;
+    }
+    .bullets li span{
+      font-size:14px;
+      color: rgba(246,241,255,.90);
+      line-height:1.35;
+    }
+
+    .big-metric{
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+      margin-top:10px;
+    }
+    .big-metric .num{
+      font-size:38px;
+      font-weight:800;
+      letter-spacing:-.03em;
+      background: linear-gradient(90deg, rgba(255,43,214,1), rgba(106,0,255,1), rgba(70,255,210,1));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      filter: drop-shadow(0 10px 30px rgba(106,0,255,.22));
+    }
+    .big-metric .label{
+      font-size:13px;
+      color: var(--muted);
+    }
+
+    /* Footer controls */
+    footer{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      min-height:54px;
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      flex:1;
+    }
+
+    button{
+      appearance:none;
+      border:none;
+      color:var(--ink);
+      font-weight:700;
+      letter-spacing:.2px;
+      border-radius: 16px;
+      padding:14px 14px;
+      background:
+        linear-gradient(135deg, rgba(255,43,214,.55), rgba(106,0,255,.55)),
+        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.05));
+      border:1px solid rgba(255,255,255,.16);
+      box-shadow: 0 16px 40px rgba(0,0,0,.35);
+      flex:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      user-select:none;
+      cursor:pointer;
+      transform: translateY(0);
+      transition: transform .12s ease, filter .12s ease, opacity .12s ease;
+    }
+    button:active{ transform: translateY(1px) scale(.99); filter: brightness(1.05); }
+    button[disabled]{ opacity:.45; cursor:not-allowed; }
+
+    .dots{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      justify-content:center;
+      padding:10px 12px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      box-shadow: 0 12px 30px rgba(0,0,0,.25);
+    }
+    .dots .p{
+      width:8px; height:8px;
+      border-radius:50%;
+      background: rgba(255,255,255,.28);
+      transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+    .dots .p.active{
+      background: rgba(70,255,210,.95);
+      box-shadow: 0 0 18px rgba(70,255,210,.55);
+      transform: scale(1.25);
+    }
+
+    /* Toast */
+    .toast{
+      position:absolute;
+      left:50%;
+      bottom: calc(18px + var(--safeBottom));
+      transform: translateX(-50%) translateY(16px);
+      opacity:0;
+      padding:10px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.14);
+      color: rgba(246,241,255,.9);
+      font-size:12px;
+      transition: opacity .25s ease, transform .25s ease;
+      pointer-events:none;
+    }
+    .toast.show{
+      opacity:1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Presenter mode (optional): bigger controls */
+    body.presenter footer button{
+      padding:18px 16px;
+      border-radius: 18px;
+      font-size: 16px;
+    }
+
+    /* Reduce motion if user prefers */
+    @media (prefers-reduced-motion: reduce){
+      .aurora{ animation:none; }
+      .slide{ transition:none; }
+      button{ transition:none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="aurora"></div>
+  <div class="noise"></div>
+
+  <div class="app" id="app">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>FlowPitch</h1>
+          <div class="tag" id="tagline">Web-native pitches that close in 2 minutes</div>
+        </div>
+      </div>
+
+      <div class="pill" id="statusPill" title="Tips">
+        <span class="dot"></span>
+        <span>Swipe • Tap • Space</span>
+      </div>
+    </header>
+
+    <main class="stage" id="stage" aria-live="polite"></main>
+
+    <footer>
+      <div class="controls">
+        <button id="prevBtn" type="button" aria-label="Previous slide">← Back</button>
+        <button id="nextBtn" type="button" aria-label="Next slide">Next →</button>
+      </div>
+
+      <div class="dots" id="dots" aria-label="Slide progress"></div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+    /***********************
+     * EDIT YOUR PITCH HERE
+     ***********************/
+    const SLIDES = [
+      {
+        kicker: "HOOK",
+        title: "Decks don’t sell on phones.",
+        subtitle: "FlowPitch converts any PPT/PDF into a web-native pitch link that looks premium, reads fast, and convinces in under 2 minutes.",
+        bullets: [
+          "One link. No attachments. No friction.",
+          "Designed for iPhone-first attention spans.",
+          "Built to drive a next action, not “view a file”."
+        ],
+        metric: { num: "2 min", label: "to understand + decide" }
+      },
+      {
+        kicker: "PROBLEM",
+        title: "PPT/PDF sharing is high friction.",
+        subtitle: "Most decks are painful on mobile — and you get zero signal back.",
+        bullets: [
+          "Looks broken on mobile (zoom + scroll chaos).",
+          "No flow: people skim, miss the point, bounce.",
+          "No insight: you don’t know what mattered."
+        ]
+      },
+      {
+        kicker: "SOLUTION",
+        title: "Upload → Theme → Publish a pitch link.",
+        subtitle: "Your deck becomes a mini-site: crisp sections, punchy UX, clear CTA.",
+        bullets: [
+          "Premium purple gradient design system out-of-the-box.",
+          "Swipe navigation + big tap targets for presenting.",
+          "Call-to-action built in (book a call / request access)."
+        ]
+      },
+      {
+        kicker: "WHY WE WIN",
+        title: "Not another slide tool.",
+        subtitle: "We turn existing decks into a high-converting web experience — fast.",
+        bullets: [
+          "Conversion is the wedge: the world already has decks.",
+          "Mobile presentation UX is the product, not “pretty pages”.",
+          "Future: analytics + templates + brand kits = compounding advantage."
+        ],
+        metric: { num: "60s", label: "deck → pitch link" }
+      },
+      {
+        kicker: "GO-TO-MARKET",
+        title: "Start where polish pays.",
+        subtitle: "Beachhead customers already pay for outcomes, not files.",
+        bullets: [
+          "Agencies + B2B sales: proposals, case studies, outbound links.",
+          "Then startups: fundraising + investor updates.",
+          "Then enterprise: governance, templates, compliance-ready sharing."
+        ]
+      },
+      {
+        kicker: "ASK",
+        title: "We’re raising to ship the standard.",
+        subtitle: "We want your scale-patterns and distribution advice — and to show you a live demo.",
+        bullets: [
+          "Small round to deliver conversion + analytics + template engine.",
+          "If it’s compelling, we move fast: pilot users → paid conversions.",
+          "Next step: 20 minutes to demo + discuss the wedge."
+        ],
+        metric: { num: "Next", label: "20-min demo" }
+      }
+    ];
+
+    /***********************
+     * Presentation engine
+     ***********************/
+    const stage = document.getElementById("stage");
+    const dots = document.getElementById("dots");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const toast = document.getElementById("toast");
+
+    let idx = 0;
+    let touchStartX = null;
+
+    // Optional: presenter=1 makes controls slightly bigger
+    const params = new URLSearchParams(location.search);
+    if (params.get("presenter") === "1") document.body.classList.add("presenter");
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(()=>toast.classList.remove("show"), 1200);
+    }
+
+    function slideHTML(s, i){
+      const metric = s.metric ? `
+        <div class="card" style="margin-top:12px;">
+          <div class="big-metric">
+            <div class="num">${escapeHTML(s.metric.num)}</div>
+            <div class="label">${escapeHTML(s.metric.label)}</div>
+          </div>
+        </div>` : "";
+
+      const bullets = (s.bullets || []).map(b => `
+        <li><div class="b" aria-hidden="true"></div><span>${escapeHTML(b)}</span></li>
+      `).join("");
+
+      return `
+        <section class="slide ${i===0 ? "active":""}" data-i="${i}">
+          <div>
+            <div class="card">
+              <div class="kicker">${escapeHTML(s.kicker || "")}</div>
+              <h2 class="title">${escapeHTML(s.title || "")}</h2>
+              <p class="subtitle">${escapeHTML(s.subtitle || "")}</p>
+              ${bullets ? `<ul class="bullets">${bullets}</ul>` : ""}
+            </div>
+            ${metric}
+          </div>
+
+          <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <div style="font-size:12px; color:rgba(246,241,255,.75);">
+              Slide <span id="slideNum">${i+1}</span> / ${SLIDES.length}
+            </div>
+            <div style="font-size:12px; color:rgba(246,241,255,.75);">
+              Tip: swipe or press space
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function escapeHTML(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function render(){
+      stage.innerHTML = SLIDES.map(slideHTML).join("");
+      dots.innerHTML = SLIDES.map((_, i)=> `<div class="p ${i===0?"active":""}" data-dot="${i}" role="button" aria-label="Go to slide ${i+1}"></div>`).join("");
+      updateButtons();
+    }
+
+    function updateButtons(){
+      prevBtn.disabled = idx === 0;
+      nextBtn.disabled = idx === SLIDES.length - 1;
+      [...dots.children].forEach((d, i)=> d.classList.toggle("active", i===idx));
+    }
+
+    function go(to){
+      if (to < 0 || to >= SLIDES.length || to === idx) return;
+
+      const all = [...stage.querySelectorAll(".slide")];
+      const current = all[idx];
+      const next = all[to];
+
+      const dir = to > idx ? "left" : "right";
+
+      // animate out current
+      current.classList.remove("active");
+      current.classList.add(dir === "left" ? "to-left" : "to-right");
+
+      // position next slightly off then bring in
+      next.classList.remove("to-left","to-right");
+      next.classList.add(dir === "left" ? "to-right" : "to-left");
+      requestAnimationFrame(()=>{
+        next.classList.add("active");
+        next.classList.remove("to-left","to-right");
+      });
+
+      idx = to;
+      updateButtons();
+
+      // Accessibility / feedback
+      stage.setAttribute("aria-label", `Slide ${idx+1} of ${SLIDES.length}`);
+      showToast(`Slide ${idx+1}/${SLIDES.length}`);
+    }
+
+    function next(){ go(idx + 1); }
+    function prev(){ go(idx - 1); }
+
+    // Buttons
+    nextBtn.addEventListener("click", next);
+    prevBtn.addEventListener("click", prev);
+
+    // Dots
+    dots.addEventListener("click", (e)=>{
+      const t = e.target.closest("[data-dot]");
+      if (!t) return;
+      go(parseInt(t.getAttribute("data-dot"), 10));
+    });
+
+    // Keyboard
+    window.addEventListener("keydown", (e)=>{
+      if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") { e.preventDefault(); next(); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
+      if (e.key.toLowerCase() === "o") { // overview shortcut
+        showToast("Tip: swipe / tap / space");
+      }
+    });
+
+    // Swipe (mobile)
+    stage.addEventListener("touchstart", (e)=>{
+      touchStartX = e.changedTouches[0].clientX;
+    }, {passive:true});
+
+    stage.addEventListener("touchend", (e)=>{
+      if (touchStartX == null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      touchStartX = null;
+
+      const threshold = 45; // easy on iPhone
+      if (dx <= -threshold) next();
+      else if (dx >= threshold) prev();
+    }, {passive:true});
+
+    // Click stage to advance (nice for one-hand presenting)
+    stage.addEventListener("click", (e)=>{
+      // Avoid conflict if user taps on dots/buttons
+      if (e.target.closest("button") || e.target.closest("[data-dot]")) return;
+      next();
+    });
+
+    render();
+  </script>
+</body>
+</html>
