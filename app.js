@@ -144,7 +144,7 @@ function slideHTML(s, i){
     return `
       <section class="slide ${i===0 ? "isActive" : ""}" data-i="${i}">
         <div class="slide__top reveal">
-          <div class="card card--main">
+          <div class="card card--main"><div class="fitInner">
             <div class="kicker">${escapeHTML(s.kicker || "")}</div>
             <h2 class="title">${escapeHTML(s.title || "")}</h2>
             <p class="subtitle">${escapeHTML(s.subtitle || "")}</p>
@@ -187,6 +187,7 @@ function slideHTML(s, i){
                 </div>
               </div>` : ""}
           </div>
+          </div>
         </div>
 
         <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
@@ -213,12 +214,13 @@ function slideHTML(s, i){
   return `
     <section class="slide ${i===0 ? "isActive" : ""}" data-i="${i}">
       <div class="slide__top reveal">
-        <div class="card card--main">
+        <div class="card card--main"><div class="fitInner">
           <div class="kicker">${escapeHTML(s.kicker || "")}</div>
           <h2 class="title">${escapeHTML(s.title || "")}</h2>
           <p class="subtitle">${escapeHTML(s.subtitle || "")}</p>
           ${bullets ? `<ul class="bullets">${bullets}</ul>` : ""}
           ${metric}
+        </div>
         </div>
       </div>
 
@@ -240,6 +242,7 @@ function render(){
   applyTransform();
   setActive(idx);
   updateUI();
+  fitActiveSlide();
 }
 
 function stageWidth(){
@@ -277,6 +280,40 @@ function showToast(msg){
   showToast._t = setTimeout(()=>toast.classList.remove("show"), 900);
 }
 
+
+function fitActiveSlide(){
+  // Never require browser zoom. If content is slightly too tall, scale it down gracefully.
+  // If it would require heavy scaling (hurts readability), fall back to internal scroll.
+  const active = track.querySelector(`.slide[data-i="${idx}"]`);
+  if (!active) return;
+
+  const card = active.querySelector(".card--main");
+  const inner = active.querySelector(".card--main .fitInner");
+  if (!card || !inner) return;
+
+  inner.style.transform = "scale(1)";
+  card.classList.remove("isScaled");
+
+  const availH = card.clientHeight;
+  const contentH = inner.scrollHeight;
+
+  const slack = 6;
+  if (contentH <= availH - slack) return;
+
+  const needed = (availH - slack) / contentH;
+
+  const MIN_SCALE = 0.88; // premium: avoid tiny type
+  if (needed >= MIN_SCALE){
+    inner.style.transform = `scale(${needed.toFixed(4)})`;
+    card.classList.add("isScaled");
+  } else {
+    // keep scroll
+    inner.style.transform = "scale(1)";
+    card.classList.remove("isScaled");
+  }
+}
+
+
 function updateUI(){
   prevBtn.disabled = !LOOP_AT_END && idx === 0;
   nextBtn.disabled = !LOOP_AT_END && idx === SLIDES.length - 1;
@@ -293,6 +330,7 @@ function go(to){
   setTarget(idx);
   setActive(idx);
   updateUI();
+  fitActiveSlide();
   showToast(`Slide ${idx+1}/${SLIDES.length}`);
 }
 
@@ -365,6 +403,7 @@ stage.addEventListener("pointermove", (e)=>{
   lastT = now;
 
   applyTransform();
+  fitActiveSlide();
 });
 
 stage.addEventListener("pointerup", (e)=>{

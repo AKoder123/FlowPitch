@@ -552,3 +552,15 @@ ul.bullets{
 /* Slightly reduce dot-bar footprint on small screens */
 .progressRow{ gap: 8px; }
 .dots{ padding: 8px 10px; }
+
+
+
+/* --- Auto-fit (no zoom required): scale content slightly if it would overflow --- */
+.card--main{ position: relative; }
+.fitInner{
+  transform-origin: top left;
+  will-change: transform;
+}
+
+/* When scaling is active, hide scrollbars; otherwise keep the existing internal scroll */
+.card--main.isScaled{ overflow: hidden; -webkit-mask-image: none; mask-image: none; }
