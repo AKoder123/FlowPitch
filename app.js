@@ -3,8 +3,23 @@
 
 const SLIDES = [
   {
+    kicker: "FLOWPITCH",
+    title: "FlowPitch turns a presentation into a trackable persuasive asset.",
+    subtitle: "Before: decks are static files. After: your deck becomes a live link with signals, updates, and clarity.",
+    bullets: [
+      "Before: a deck is a static file that dies after you press send.",
+      "Before: you spend hours polishing, then you guess what landed.",
+      "Before: updates mean re-exporting, re-sending, and version confusion.",
+      "After: your deck becomes a live link with consistent design and navigation.",
+      "After: engagement signals (views, time, clicks, completion) reveal interest.",
+      "After: update once and everyone always sees the latest version.",
+      "Value: faster creation. cleaner sharing. smarter follow-up."
+    ],
+    metric: { num: "Live", label: "link + signals" }
+  },
+  {
     kicker: "HOOK",
-    title: "Presentations shouldn’t look like documents.",
+    title: "Pitches shouldn’t look like documents.",
     subtitle: "FlowPitch turns any PPT/PDF into a web-native pitch experience that reads fast, looks premium, and drives a decision.",
     bullets: [
       "One link. No attachments. No friction.",
@@ -35,7 +50,7 @@ const SLIDES = [
   },
   {
     kicker: "WHY WE WIN",
-    title: "We don’t replace decks. We upgrade them.",
+    title: "We don’t replace decks — we upgrade them.",
     subtitle: "The wedge is conversion: the world already has decks. We make them web-native instantly.",
     bullets: [
       "Convert existing PPT/PDF into web-native pitch pages.",
