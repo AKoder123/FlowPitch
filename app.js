@@ -4,18 +4,25 @@
 const SLIDES = [
   {
     kicker: "FLOWPITCH",
+    layout: "hero",
     title: "FlowPitch turns a presentation into a trackable persuasive asset.",
-    subtitle: "Before: decks are static files. After: your deck becomes a live link with signals, updates, and clarity.",
-    bullets: [
-      "Before: a deck is a static file that dies after you press send.",
-      "Before: you spend hours polishing, then you guess what landed.",
-      "Before: updates mean re-exporting, re-sending, and version confusion.",
-      "After: your deck becomes a live link with consistent design and navigation.",
-      "After: engagement signals (views, time, clicks, completion) reveal interest.",
-      "After: update once and everyone always sees the latest version.",
-      "Value: faster creation. cleaner sharing. smarter follow-up."
+    subtitle: "A simple shift: from a static file to a live link with clarity and signal.",
+    before: [
+      "A deck is a static file that dies after you press send.",
+      "You spend hours polishing, then you guess what landed.",
+      "Updates mean re-exporting, re-sending, and version confusion."
     ],
-    metric: { num: "Live", label: "link + signals" }
+    after: [
+      "Your deck becomes a live link with consistent design and navigation.",
+      "Engagement signals reveal interest (views, time, clicks, completion).",
+      "Update once and everyone always sees the latest version."
+    ],
+    valueChips: [
+      "Faster creation",
+      "Cleaner sharing",
+      "Smarter follow-up"
+    ],
+    metric: { num: "Trackable", label: "link + signal" }
   },
   {
     kicker: "HOOK",
@@ -132,6 +139,65 @@ function escapeHTML(str){
 }
 
 function slideHTML(s, i){
+  // HERO slide with Before/After grouping
+  if (s.layout === "hero"){
+    return `
+      <section class="slide ${i===0 ? "isActive" : ""}" data-i="${i}">
+        <div class="slide__top reveal">
+          <div class="card card--main">
+            <div class="kicker">${escapeHTML(s.kicker || "")}</div>
+            <h2 class="title">${escapeHTML(s.title || "")}</h2>
+            <p class="subtitle">${escapeHTML(s.subtitle || "")}</p>
+
+            <div class="heroGrid" style="margin-top:12px;">
+              <div class="panel">
+                <div class="panel__head">
+                  <div class="badge">Before</div>
+                  <div class="pillTag">Static file • No signal</div>
+                </div>
+                <ul>
+                  ${(s.before || []).map(t => `
+                    <li class="row"><span class="ic before" aria-hidden="true"></span><p>${escapeHTML(t)}</p></li>
+                  `).join("")}
+                </ul>
+              </div>
+
+              <div class="panel">
+                <div class="panel__head">
+                  <div class="badge">After</div>
+                  <div class="pillTag">Live link • Trackable</div>
+                </div>
+                <ul>
+                  ${(s.after || []).map(t => `
+                    <li class="row"><span class="ic after" aria-hidden="true"></span><p>${escapeHTML(t)}</p></li>
+                  `).join("")}
+                </ul>
+              </div>
+            </div>
+
+            <div class="chips" aria-label="Value">
+              ${(s.valueChips || []).map(c => `<span class="chip">${escapeHTML(c)}</span>`).join("")}
+            </div>
+
+            ${s.metric ? `
+              <div class="card" style="margin-top:12px;">
+                <div class="metric">
+                  <div class="metric__num">${escapeHTML(s.metric.num)}</div>
+                  <div class="metric__label">${escapeHTML(s.metric.label)}</div>
+                </div>
+              </div>` : ""}
+          </div>
+        </div>
+
+        <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <div style="font-size:12px; color:rgba(247,243,255,.72);">Slide ${i+1} / ${SLIDES.length}</div>
+          <div style="font-size:12px; color:rgba(247,243,255,.72);">Tap right • drag • keys</div>
+        </div>
+      </section>
+    `;
+  }
+
+  // Default slide
   const bullets = (s.bullets || []).map(b => `
     <li><div class="b" aria-hidden="true"></div><span>${escapeHTML(b)}</span></li>
   `).join("");
@@ -146,14 +212,14 @@ function slideHTML(s, i){
 
   return `
     <section class="slide ${i===0 ? "isActive" : ""}" data-i="${i}">
-      <div class="reveal">
-        <div class="card">
+      <div class="slide__top reveal">
+        <div class="card card--main">
           <div class="kicker">${escapeHTML(s.kicker || "")}</div>
           <h2 class="title">${escapeHTML(s.title || "")}</h2>
           <p class="subtitle">${escapeHTML(s.subtitle || "")}</p>
           ${bullets ? `<ul class="bullets">${bullets}</ul>` : ""}
+          ${metric}
         </div>
-        ${metric}
       </div>
 
       <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
