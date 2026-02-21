@@ -432,11 +432,12 @@ ul.bullets{
 }
 .card--main::-webkit-scrollbar{ width: 0; height: 0; }
 
-/* subtle scroll fade */
-.card--main{
+/* subtle scroll fade (only when scrollable) */
+.card--main.isScrollable{
   -webkit-mask-image: linear-gradient(#000 92%, transparent 100%);
   mask-image: linear-gradient(#000 92%, transparent 100%);
 }
+
 
 .title{
   font-size: clamp(20px, 4.4vw, 30px);
@@ -564,3 +565,47 @@ ul.bullets{
 
 /* When scaling is active, hide scrollbars; otherwise keep the existing internal scroll */
 .card--main.isScaled{ overflow: hidden; -webkit-mask-image: none; mask-image: none; }
+
+
+
+/* --- Viewport-fit: use dynamic viewport units + compact mode for shorter heights --- */
+html, body { height: 100%; }
+body { min-height: 100dvh; }
+
+.app{
+  height: 100dvh;
+  min-height: 100dvh;
+}
+
+.stage{ min-height: 0; }
+.footer{ min-height: 0; }
+
+/* Compact mode (short viewports / OS scaling). Keeps everything visible at 100% zoom. */
+body.compact .app{ padding: calc(8px + var(--safeTop)) 10px calc(8px + var(--safeBottom)) 10px; gap: 8px; }
+body.compact .topbar{ min-height: 40px; }
+body.compact .brand__tag, body.compact .hint{ font-size: 11px; }
+body.compact .stage{ border-radius: 18px; }
+body.compact .slide{ padding: 12px; }
+body.compact .card{ padding: 12px; border-radius: 16px; }
+
+body.compact .title{ font-size: clamp(18px, 3.8vw, 26px); }
+body.compact .subtitle{ font-size: 12.5px; }
+body.compact ul.bullets{ gap: 7px; margin-top: 10px; }
+body.compact .bullets li{ padding: 9px 10px; }
+body.compact .bullets li span{ font-size: 13px; }
+
+body.compact .heroGrid{ gap: 10px; margin-top: 10px !important; }
+body.compact .panel{ padding: 12px; border-radius: 14px; }
+body.compact .panel ul{ gap: 8px; }
+body.compact .pillTag{ padding: 7px 9px; font-size: 11px; }
+body.compact .badge{ font-size: 11px; }
+
+body.compact .chips{ margin-top: 8px; gap: 6px; }
+body.compact .chip{ padding: 8px 10px; font-size: 11px; }
+
+body.compact .metric__num{ font-size: 32px; }
+body.compact .footer{ gap: 8px; }
+body.compact .btn{ padding: 11px 12px; border-radius: 14px; }
+
+/* Prefer fitting without scroll; scroll is still allowed if needed */
+body.compact .card--main{ -webkit-mask-image: none !important; mask-image: none !important; }

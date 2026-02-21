@@ -101,6 +101,18 @@ const nextBtn = document.getElementById("nextBtn");
 const tapLeft = document.getElementById("tapLeft");
 const tapRight= document.getElementById("tapRight");
 
+
+function updateCompactMode(){
+  // Enterprise-grade: adapt to short viewports / OS scaling without requiring browser zoom.
+  const vv = window.visualViewport;
+  const h = vv ? vv.height : window.innerHeight;
+  // Tune threshold: below this height, tighten spacing & typography.
+  // Works well for 100% zoom on laptops + Windows scaling and for mobile browser UI bars.
+  const compact = h < 820;
+  document.body.classList.toggle("compact", compact);
+  try{ fitActiveSlide && fitActiveSlide(); }catch(e){}
+}
+
 // Navigation settings
 const LOOP_AT_END = false; // demo default
 
@@ -189,11 +201,6 @@ function slideHTML(s, i){
           </div>
           </div>
         </div>
-
-        <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-          <div style="font-size:12px; color:rgba(247,243,255,.72);">Slide ${i+1} / ${SLIDES.length}</div>
-          <div style="font-size:12px; color:rgba(247,243,255,.72);">Tap right • drag • keys</div>
-        </div>
       </section>
     `;
   }
@@ -223,12 +230,7 @@ function slideHTML(s, i){
         </div>
         </div>
       </div>
-
-      <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-        <div style="font-size:12px; color:rgba(247,243,255,.72);">Slide ${i+1} / ${SLIDES.length}</div>
-        <div style="font-size:12px; color:rgba(247,243,255,.72);">Tap right • drag • keys</div>
-      </div>
-    </section>
+      </section>
   `;
 }
 
@@ -282,8 +284,8 @@ function showToast(msg){
 
 
 function fitActiveSlide(){
-  // Never require browser zoom. If content is slightly too tall, scale it down gracefully.
-  // If it would require heavy scaling (hurts readability), fall back to internal scroll.
+  // Never require browser zoom. If content is slightly too tall, scale down gracefully.
+  // If it would require heavy scaling, fall back to internal scroll inside the card.
   const active = track.querySelector(`.slide[data-i="${idx}"]`);
   if (!active) return;
 
@@ -291,9 +293,12 @@ function fitActiveSlide(){
   const inner = active.querySelector(".card--main .fitInner");
   if (!card || !inner) return;
 
+  // reset
   inner.style.transform = "scale(1)";
   card.classList.remove("isScaled");
+  card.classList.remove("isScrollable");
 
+  // measure
   const availH = card.clientHeight;
   const contentH = inner.scrollHeight;
 
@@ -302,14 +307,15 @@ function fitActiveSlide(){
 
   const needed = (availH - slack) / contentH;
 
-  const MIN_SCALE = 0.88; // premium: avoid tiny type
+  const MIN_SCALE = 0.90; // keep type readable
   if (needed >= MIN_SCALE){
     inner.style.transform = `scale(${needed.toFixed(4)})`;
     card.classList.add("isScaled");
+    // when scaled, we don't need scroll fade
   } else {
-    // keep scroll
+    // too much overflow: keep readable and allow scroll (with subtle fade)
     inner.style.transform = "scale(1)";
-    card.classList.remove("isScaled");
+    card.classList.add("isScrollable");
   }
 }
 
@@ -467,4 +473,10 @@ function start(){
   raf = requestAnimationFrame(step);
 }
 
+updateCompactMode();
 start();
+
+
+// Compact mode updates
+window.addEventListener('resize', updateCompactMode);
+if (window.visualViewport){ window.visualViewport.addEventListener('resize', updateCompactMode); }
