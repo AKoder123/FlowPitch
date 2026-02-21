@@ -5,7 +5,7 @@ const SLIDES = [
   {
     kicker: "FLOWPITCH",
     layout: "hero",
-    title: "Our UVP: FlowPitch turns a presentation into a trackable persuasive asset.",
+    title: "Our Unique Value Proposition: FlowPitch turns a presentation into a trackable persuasive asset.",
     subtitle: "A simple shift: from a static file to a live link with clarity and signal.",
     before: [
       "A deck is a static file that dies after you press send.",
@@ -34,6 +34,17 @@ const SLIDES = [
       "Built for action: a clear CTA and flow."
     ],
     metric: { num: "2 min", label: "to understand + decide" }
+  },
+  {
+    kicker: "SCALE",
+    title: "Built to Scale Globally from Day One",
+    subtitle: "Distribution and localisation are designed in from the start, not bolted on later.",
+    bullets: [
+      "Link-based, browser-native: works anywhere, instantly.",
+      "Self-serve + viral sharing: every deck shared drives the next user.",
+      "Localised experience: language, templates, pricing per country.",
+      "Enterprise-ready expansion: SSO, compliance, and regional hosting as we grow."
+    ]
   },
   {
     kicker: "PROBLEM",
