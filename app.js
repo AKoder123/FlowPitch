@@ -5,7 +5,7 @@ const SLIDES = [
   {
     kicker: "FLOWPITCH",
     layout: "hero",
-    title: "FlowPitch turns a presentation into a trackable persuasive asset.",
+    title: "Our UVP: FlowPitch turns a presentation into a trackable persuasive asset.",
     subtitle: "A simple shift: from a static file to a live link with clarity and signal.",
     before: [
       "A deck is a static file that dies after you press send.",
