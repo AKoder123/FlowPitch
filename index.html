@@ -1,65 +1,33 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#150020" />
-  <title>FlowPitch — Web-Native Pitch</title>
-  <link rel="stylesheet" href="./styles.css" />
-</head>
+<section class="slide uvp">
+  <header class="uvp__header">
+    <div class="eyebrow">FLOWPITCH</div>
+    <h1>FlowPitch turns a presentation into a trackable persuasive asset.</h1>
+    <p class="subhead">Before: decks are static files. After: your deck becomes a live link with signals, updates, and clarity.</p>
+  </header>
 
-<body>
-  <div class="bg">
-    <div class="bg__aurora"></div>
-    <div class="bg__grain" aria-hidden="true"></div>
+  <div class="uvp__grid">
+    <article class="card card--before">
+      <h3>Before</h3>
+      <ul>
+        <li>Static file after you hit send</li>
+        <li>You follow up blind (no signals)</li>
+        <li>Re-export + re-send = version chaos</li>
+      </ul>
+    </article>
+
+    <article class="card card--after">
+      <h3>After</h3>
+      <ul>
+        <li>Live link with consistent design</li>
+        <li>Engagement signals (views, time, clicks, completion)</li>
+        <li>Update once—everyone sees the latest</li>
+      </ul>
+    </article>
   </div>
 
-  <div class="app" id="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand__mark" aria-hidden="true"></div>
-        <div class="brand__text">
-          <div class="brand__name">FlowPitch</div>
-          <div class="brand__tag">Web-native pitches. Decks upgraded.</div>
-        </div>
-      </div>
-
-      <div class="hint" title="Controls">
-        <span class="hint__dot"></span>
-        <span>Drag • Tap • Keys</span>
-      </div>
-    </header>
-
-    <main class="stage" id="stage" aria-live="polite">
-      <div class="tap tap--left" id="tapLeft" aria-hidden="true"></div>
-      <div class="tap tap--right" id="tapRight" aria-hidden="true"></div>
-
-      <div class="viewport">
-        <div class="track" id="track"></div>
-      </div>
-
-      <div class="toast" id="toast" aria-hidden="true"></div>
-    </main>
-
-    <footer class="footer">
-      <div class="progressRow">
-        <div class="bar" aria-label="Progress">
-          <i class="bar__fill" id="barFill"></i>
-        </div>
-        <div class="dots" id="dots" aria-label="Slide progress"></div>
-      </div>
-
-      <div class="controls">
-        <button class="btn" id="prevBtn" type="button" aria-label="Previous slide">
-          <span class="btn__icon">←</span><span>Back</span>
-        </button>
-        <button class="btn btn--primary" id="nextBtn" type="button" aria-label="Next slide">
-          <span>Next</span><span class="btn__icon">→</span>
-        </button>
-      </div>
-    </footer>
-  </div>
-
-  <script src="./app.js" defer></script>
-</body>
-</html>
+  <footer class="uvp__value">
+    <span class="chip">Faster creation</span>
+    <span class="chip">Cleaner sharing</span>
+    <span class="chip">Smarter follow-up</span>
+  </footer>
+</section>
